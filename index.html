@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Portal do Casal - Giu & Nyny</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Firebase SDKs (Compatíveis com a versão que você usou no RPG) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <!-- PLAYER DE MÚSICA DE FUNDO FIXO -->
+  <div id="bg-music-player" class="bg-music-player">
+    <audio id="audio-element" loop src="musica.mp4"></audio>
+    <button id="music-toggle-btn" class="music-btn" onclick="toggleMusic()">🎵 Play</button>
+    <span class="music-label">Música do Casal</span>
+  </div>
+
+  <!-- 1. TELA DE LOGIN / KEYPAD -->
+  <div id="login-screen" class="login-screen">
+    <div class="keypad-card">
+      <div class="avatar-heart">💖</div>
+      <h2>Portal do Casal</h2>
+      <p class="subtitle">Digite a nossa data especial</p>
+      
+      <div id="pin-display" class="pin-display">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      
+      <div id="pin-error" class="pin-error"></div>
+
+      <div class="keypad-grid">
+        <button class="key-btn" onclick="pressPin('1')">1</button>
+        <button class="key-btn" onclick="pressPin('2')">2</button>
+        <button class="key-btn" onclick="pressPin('3')">3</button>
+        <button class="key-btn" onclick="pressPin('4')">4</button>
+        <button class="key-btn" onclick="pressPin('5')">5</button>
+        <button class="key-btn" onclick="pressPin('6')">6</button>
+        <button class="key-btn" onclick="pressPin('7')">7</button>
+        <button class="key-btn" onclick="pressPin('8')">8</button>
+        <button class="key-btn" onclick="pressPin('9')">9</button>
+        <button class="key-btn clear" onclick="clearPin()">C</button>
+        <button class="key-btn" onclick="pressPin('0')">0</button>
+        <button class="key-btn del" onclick="backspacePin()">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER PRINCIPAL -->
+  <div id="main-app" class="main-app hidden">
+    
+    <!-- LAUNCHER (HOME) -->
+    <div id="app-launcher" class="app-screen active">
+      <header class="app-header">
+        <h1>Nosso Cantinho 💕</h1>
+        <p>Giu & Nyny</p>
+      </header>
+
+      <div class="apps-grid">
+        <button class="app-card" onclick="openApp('app-diario')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);">📖</div>
+          <span>Diários</span>
+        </button>
+
+        <button class="app-card" onclick="openApp('app-galeria')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);">🎨</div>
+          <span>Desenhos</span>
+        </button>
+
+        <button class="app-card" onclick="openApp('app-cartas')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #ff758c, #ff7eb3);">💌</div>
+          <span>Cartinhas</span>
+        </button>
+
+        <button class="app-card" onclick="openApp('app-timer')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #ffbcba, #f76b1c);">⏳</div>
+          <span>Contador & Árvore</span>
+        </button>
+
+        <button class="app-card" onclick="openApp('app-galaxya')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #6a11cb, #2575fc);">🌌</div>
+          <span>Galáxia</span>
+        </button>
+
+        <button class="app-card" onclick="openApp('app-listas')">
+          <div class="app-icon" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);">📋</div>
+          <span>Pranchetas</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. APP: DIÁRIOS -->
+    <div id="app-diario" class="app-screen">
+      <header class="top-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Meus Diários</h2>
+        <div style="width: 60px;"></div>
+      </header>
+
+      <div id="diario-shelves-view" class="diario-subscreen active">
+        <div class="action-bar">
+          <button class="primary-btn" onclick="openNewBookModal()">+ Novo Diário</button>
+        </div>
+        <div id="books-grid" class="books-grid"></div>
+      </div>
+
+      <div id="diario-reader-view" class="diario-subscreen">
+        <div class="reader-toolbar">
+          <button class="tool-btn" onclick="toggleSidebar()">☰ Divisórias</button>
+          <button class="tool-btn" onclick="backToShelves()">📚 Estante</button>
+          <button class="tool-btn" onclick="scrollToBottom()">⬇ Ir ao Final</button>
+          <span id="auto-save-status" class="save-status">Salvo no Firebase✓</span>
+        </div>
+
+        <div class="reader-container" id="reader-container">
+          <div id="reader-sidebar" class="reader-sidebar">
+            <div class="sidebar-header">
+              <h3>Divisórias</h3>
+              <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+            </div>
+            <div id="divisores-list" class="divisores-list"></div>
+            <button class="add-divisor-btn" onclick="openNewDivisorModal()">+ Nova Divisória</button>
+          </div>
+
+          <div class="reader-content">
+            <div class="divisor-header-actions">
+              <h3 id="current-divisor-name">Selecione uma divisória</h3>
+              <div class="divisor-buttons">
+                <button class="mini-btn" onclick="editCurrentDivisor()">✏️</button>
+                <button class="mini-btn danger" onclick="deleteCurrentDivisor()">🗑️</button>
+              </div>
+            </div>
+            <textarea id="divisor-textarea" placeholder="Escreva aqui... (Sincronizado via Firebase)"></textarea>
+            
+            <div class="reader-pagination">
+              <button class="nav-arrow-btn" id="btn-prev-divisor" onclick="navigateDivisor(-1)">&lt;</button>
+              <span id="divisor-page-indicator" class="page-indicator">1 / 1</span>
+              <button class="nav-arrow-btn" id="btn-next-divisor" onclick="navigateDivisor(1)">&gt;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. APP: DESENHOS -->
+    <div id="app-galeria" class="app-screen">
+      <header class="top-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Mural de Desenhos</h2>
+        <div style="width: 60px;"></div>
+      </header>
+      
+      <div class="app-body">
+        <div class="fichario-controls">
+          <label for="drawing-input" class="primary-btn upload-lbl">+ Adicionar Desenho/Foto</label>
+          <input type="file" id="drawing-input" accept="image/*" class="hidden-input" onchange="handleImageUpload(event)">
+          
+          <div class="zoom-magnifier-controls">
+            <button class="zoom-btn" onclick="zoomGallery(-1)" title="Diminuir">🔍 -</button>
+            <span id="zoom-level-indicator">100%</span>
+            <button class="zoom-btn" onclick="zoomGallery(1)" title="Aumentar">🔍 +</button>
+          </div>
+        </div>
+        <div id="drawings-grid" class="drawings-grid"></div>
+      </div>
+    </div>
+
+    <!-- 4. APP: CARTINHAS DE AMOR -->
+    <div id="app-cartas" class="app-screen">
+      <header class="top-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Cartinhas de Amor</h2>
+        <button class="icon-btn" onclick="openNewCartaModal()">+</button>
+      </header>
+
+      <div class="app-body">
+        <div class="action-bar">
+          <button class="primary-btn" onclick="sortearCarinho()">🎲 Sortear Cartinha</button>
+          <button class="secondary-btn danger-text" onclick="limparCartasComBug()">⚠️ Resetar Cartinhas</button>
+        </div>
+        <div id="cartas-list" class="cartas-list"></div>
+      </div>
+    </div>
+
+    <!-- 5. APP: CONTADOR E ÁRVORE -->
+    <div id="app-timer" class="app-screen">
+      <header class="top-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Tempo & Árvore</h2>
+        <div style="width: 60px;"></div>
+      </header>
+
+      <div class="app-body timer-body">
+        <div class="timer-card">
+          <h3>Juntos há:</h3>
+          <div id="countup-timer" class="timer-display">00d 00h 00m 00s</div>
+          <p class="timer-sub">Início: 11/02/2026 às 19:32</p>
+        </div>
+
+        <div class="timer-card">
+          <h3>Contagem pro Aniversário (17 Anos):</h3>
+          <div id="countdown-timer" class="timer-display">00d 00h 00m 00s</div>
+          <p class="timer-sub">Data: 25/10/2026</p>
+        </div>
+
+        <div class="tree-container">
+          <canvas id="tree-canvas" width="340" height="320"></canvas>
+          <p id="tree-status-text" class="tree-status-text">Carregando crescimento...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. APP: GALÁXIA 3D -->
+    <div id="app-galaxya" class="app-screen">
+      <header class="top-nav galaxy-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Galáxia de Partículas</h2>
+        <button class="icon-btn" onclick="openNewGalaxyMsgModal()">+</button>
+      </header>
+
+      <div id="galaxy-3d-container"></div>
+      <div id="galaxy-tooltip" class="galaxy-tooltip hidden">
+        <p id="galaxy-tooltip-text"></p>
+        <button onclick="closeGalaxyTooltip()">Fechar</button>
+      </div>
+    </div>
+
+    <!-- 7. APP: PRANCHETAS -->
+    <div id="app-listas" class="app-screen">
+      <header class="top-nav">
+        <button class="back-btn" onclick="backToLauncher()">❮ Voltar</button>
+        <h2>Pranchetas & Listas</h2>
+        <button class="icon-btn" onclick="openNewBoardModal()">+</button>
+      </header>
+
+      <div class="app-body">
+        <div id="boards-grid" class="boards-grid"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAIS -->
+  <div id="modal-new-book" class="modal hidden">
+    <div class="modal-card">
+      <h3>Criar Novo Diário</h3>
+      <input type="text" id="book-title-input" placeholder="Título do Diário">
+      <label>Cor da Capa:</label>
+      <input type="color" id="book-color-input" value="#ff758c">
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-new-book')">Cancelar</button>
+        <button class="primary-btn" onclick="createNewBook()">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-new-divisor" class="modal hidden">
+    <div class="modal-card">
+      <h3>Nova Divisória</h3>
+      <input type="text" id="divisor-title-input" placeholder="Nome da Divisória">
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-new-divisor')">Cancelar</button>
+        <button class="primary-btn" onclick="createNewDivisor()">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-new-drawing" class="modal hidden">
+    <div class="modal-card">
+      <h3>Novo Desenho / Foto</h3>
+      <div class="preview-img-box">
+        <img id="upload-preview" src="" alt="Preview">
+      </div>
+      <input type="text" id="drawing-title-input" placeholder="Legenda do Desenho">
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-new-drawing')">Cancelar</button>
+        <button class="primary-btn" onclick="confirmSaveDrawing()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-zoom-image" class="modal hidden" onclick="closeModal('modal-zoom-image')">
+    <img id="modal-zoom-img-target" class="zoom-image-content" src="" alt="Ampliada">
+  </div>
+
+  <div id="modal-new-carta" class="modal hidden">
+    <div class="modal-card">
+      <h3>Nova Cartinha</h3>
+      <textarea id="carta-text-input" placeholder="Escreva aqui a mensagem de amor..."></textarea>
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-new-carta')">Cancelar</button>
+        <button class="primary-btn" onclick="saveNewCarta()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-new-board" class="modal hidden">
+    <div class="modal-card">
+      <h3>Nova Prancheta / Lista</h3>
+      <input type="text" id="board-title-input" placeholder="Título da Prancheta (ex: Viagens)">
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-new-board')">Cancelar</button>
+        <button class="primary-btn" onclick="createNewBoard()">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-galaxy-msg" class="modal hidden">
+    <div class="modal-card">
+      <h3>Frase na Galáxia</h3>
+      <textarea id="galaxy-msg-input" placeholder="Escreva a mensagem..."></textarea>
+      <div class="modal-actions">
+        <button class="secondary-btn" onclick="closeModal('modal-galaxy-msg')">Cancelar</button>
+        <button class="primary-btn" onclick="saveNewGalaxyMsg()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
