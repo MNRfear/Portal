@@ -1,4 +1,4 @@
-// CONFIGURAÇÃO DO FIREBASE (Sua mesma chave do site de RPG)
+// CONFIGURAÇÃO DO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDmO4b4K_5K9UjMA7sOM99hHlj5kxuYbis",
   authDomain: "meu-rpg-fichas-86b00.firebaseapp.com",
@@ -9,7 +9,6 @@ const firebaseConfig = {
   appId: "1:869128398165:web:ba35bbd104b6cb4733fbdc"
 };
 
-// Inicializa Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -42,7 +41,6 @@ let selectedDivisorIndex = 0;
 let tempUploadData = null;
 let currentZoomPx = 140;
 
-// ESCUTAR O FIREBASE EM TEMPO REAL
 window.addEventListener('load', () => {
   portalRef.on('value', (snapshot) => {
     const data = snapshot.val();
@@ -55,7 +53,6 @@ window.addEventListener('load', () => {
         galaxyMsgs: data.galaxyMsgs || []
       };
       
-      // Atualiza as telas que estiverem abertas
       if (document.getElementById('diario-shelves-view').classList.contains('active')) renderBooksShelves();
       if (document.getElementById('diario-reader-view').classList.contains('active')) {
         renderDivisorsList();
@@ -77,8 +74,12 @@ function toggleMusic() {
   const audio = document.getElementById('audio-element');
   const btn = document.getElementById('music-toggle-btn');
   if (audio.paused) {
-    audio.play();
-    btn.innerText = "⏸️ Pause";
+    audio.play().then(() => {
+      btn.innerText = "⏸️ Pause";
+    }).catch(e => {
+      console.log("Erro ao reproduzir áudio: ", e);
+      alert("Coloque um arquivo 'musica.mp3' ou 'musica.mp4' na mesma pasta do site!");
+    });
   } else {
     audio.pause();
     btn.innerText = "🎵 Play";
@@ -110,12 +111,11 @@ function checkPin() {
     if (login) login.remove();
     document.getElementById('main-app').classList.remove('hidden');
     
-    // Tenta dar play automático na música caso o navegador permita
     const audio = document.getElementById('audio-element');
     if(audio) {
       audio.play().then(() => {
         document.getElementById('music-toggle-btn').innerText = "⏸️ Pause";
-      }).catch(() => { /* clique do usuário necessário */ });
+      }).catch(() => { /* clique do usuário necessário se bloqueado pelo navegador */ });
     }
 
     initTimers();
@@ -629,20 +629,6 @@ function drawTreeByDay(day) {
       ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
       ctx.fill();
     });
-
-    const fallingPetals = [
-      { x: centerX - 50, y: baseY - 10 },
-      { x: centerX - 30, y: baseY + 2 },
-      { x: centerX + 40, y: baseY - 5 },
-      { x: centerX + 60, y: baseY + 3 }
-    ];
-
-    ctx.fillStyle = '#ff80ab';
-    fallingPetals.forEach(p => {
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y, 4, 2, Math.PI / 4, 0, Math.PI * 2);
-      ctx.fill();
-    });
   }
 }
 
@@ -786,5 +772,4 @@ function deleteBoardTodo(boardIdx, todoIdx) {
   renderBoards();
 }
 
-// UTILITÁRIOS
 function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }

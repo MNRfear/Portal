@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-  <!-- Firebase SDKs (Compatíveis com a versão que você usou no RPG) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -16,9 +16,13 @@
 
   <!-- PLAYER DE MÚSICA DE FUNDO FIXO -->
   <div id="bg-music-player" class="bg-music-player">
-    <audio id="audio-element" loop src="musica.mp4"></audio>
+    <audio id="audio-element" loop>
+      <source src="musica.mp3" type="audio/mpeg">
+      <source src="musica.mp4" type="audio/mp4">
+      Seu navegador não suporta áudio.
+    </audio>
     <button id="music-toggle-btn" class="music-btn" onclick="toggleMusic()">🎵 Play</button>
-    <span class="music-label">Música do Casal</span>
+    <span class="music-label">Música</span>
   </div>
 
   <!-- 1. TELA DE LOGIN / KEYPAD -->
